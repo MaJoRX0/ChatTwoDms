@@ -1,26 +1,21 @@
 [
-{
-  "Author": "Usagi",
-  "Name": "CHAT22",
-  "InternalName": "ChatTwo",
-  "AssemblyVersion": "1.34.3",
-  "TestingAssemblyVersion": "1.34.3",
-  "Description": "A plugin to run the FFXIV_ACT_Plugin in an ACT-like environment with a heavily modified port of Overlay Plugin for modern .NET",
-  "ApplicableVersion": "any",
-  "RepoUrl": "https://github.com/marzent/IINACT",
-  "Tags": [
-    "parsing",
-    "plugin",
-    "ACT"
-  ],
-  "DalamudApiLevel": 14,
-  "LoadPriority": 0,
-  "IconUrl": "https://raw.githubusercontent.com/marzent/IINACT/master/images/icon.png",
-  "Punchline": "A parsing plugin.",
-  "IsHide": "False",
-  "IsTestingExclusive": "False",
+  {
+    "Author": "Twinki",
+    "Name": "Chat 2 - Twinkified",
+    "Punchline": "Customized Chat 2 with automatic DM tabs and history loading.",
+    "Description": "A complete rewrite of the in-game chat window with unlimited tabs, flexible filtering, RGB channel coloring, variable font size, sidebar tabs, unread counts, emotes, and screenshot mode. This version includes automatic DM tab creation and chat history loading.",
+    "InternalName": "ChatTwo",
+    "AssemblyVersion": "1.34.3.0",
+    "TestingAssemblyVersion": null,
+    "RepoUrl": "https://github.com/MaJoRX0/ChatTwoDms",
+    "ApplicableVersion": "any",
+    "DalamudApiLevel": 11,
+    "LoadPriority": 0,
+    "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
+    "IsHide": false,
+    "IsTestingExclusive": false,
     "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip",
     "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip",
     "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip"
-}
+  }
 ]
