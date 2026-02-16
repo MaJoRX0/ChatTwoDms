@@ -939,29 +939,31 @@ public sealed class ChatLogWindow : Window
         ];
     }
 
-    internal void SendChatBox(Tab activeTab)
+internal void SendChatBox(Tab activeTab)
     {
         if (!string.IsNullOrWhiteSpace(Chat))
         {
             var trimmed = Chat.Trim();
+            
+            // [FIX] Move these two lines to the TOP. 
+            // This ensures your message is saved to the Up/Down arrow history 
+            // before we hijack the sending process.
+            AddBacklog(trimmed);
+            InputBacklogIdx = -1;
 
-            // [FIXED] DM Tab Hijack with unique variable name
+            // DM Tab Hijack
             if (!trimmed.StartsWith('/') && !string.IsNullOrEmpty(activeTab.TargetSender))
             {
-                // Construct the full command: /tell Name@World Message
                 var manualCommand = $"/tell {activeTab.TargetSender} {trimmed}";
-
-                // Renamed 'bytes' to 'dmBytes' to avoid the scope error
+                
                 var dmBytes = Encoding.UTF8.GetBytes(manualCommand);
                 AutoTranslate.ReplaceWithPayload(ref dmBytes);
 
-                // Send directly to the game's chat engine
                 ChatBox.SendMessageUnsafe(dmBytes);
 
-                // Clean up and stop further processing
                 Chat = string.Empty;
                 activeTab.CurrentChannel.ResetTempChannel();
-                return;
+                return; // Now it's safe to return!
             }
 
             if (!trimmed.StartsWith('/'))
