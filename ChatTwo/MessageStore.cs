@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections;
 using System.Data.Common;
 using ChatTwo.Code;
@@ -379,6 +379,54 @@ internal class MessageStore : IDisposable
     /// <summary>
     /// Marks a message as deleted so it won't get returned in queries.
     /// </summary>
+    // [NEW] Specialized query to find DMs buried deep in history
+    // [NEW ADDITION] 
+    // This helper specifically looks for Tells (DMs) in the database.
+    // It is used ONLY by the new DM tabs to find history.
+    // Ensure this exists in MessageStore.cs!
+    // [UPDATED] Supports fetching ALL history if count is -1
+    internal MessageEnumerator GetRecentTells(int count = 200)
+    {
+        string sql;
+
+        if (count > 0)
+        {
+            // Original Logic: Get the *latest* N messages
+            sql = @"
+                SELECT *
+                FROM (
+                    SELECT
+                        Id, Receiver, ContentId, Date, Code, Sender, Content, SenderSource, ContentSource, SortCode, ExtraChatChannel
+                    FROM messages
+                    WHERE Deleted = 0 
+                    AND (Channel = 12 OR Channel = 13)
+                    ORDER BY Date DESC
+                    LIMIT $Count
+                )
+                ORDER BY Date ASC;
+            ";
+        }
+        else
+        {
+            // New Logic (Count is -1): Get EVERYTHING from the beginning of time
+            sql = @"
+                SELECT
+                    Id, Receiver, ContentId, Date, Code, Sender, Content, SenderSource, ContentSource, SortCode, ExtraChatChannel
+                FROM messages
+                WHERE Deleted = 0 
+                AND (Channel = 12 OR Channel = 13)
+                ORDER BY Date ASC;
+            ";
+        }
+
+        var cmd = Connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        if (count > 0)
+            cmd.Parameters.AddWithValue("$Count", count);
+
+        return new MessageEnumerator(cmd.ExecuteReader());
+    }
     internal void DeleteMessage(Guid id)
     {
         using var cmd = Connection.CreateCommand();

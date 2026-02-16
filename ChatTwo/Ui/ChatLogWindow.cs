@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -784,7 +784,21 @@ public sealed class ChatLogWindow : Window
 
     private Chunk[] ReadChannelName(Tab activeTab)
     {
+        if (!string.IsNullOrEmpty(activeTab.TargetSender))
+        {
+            var nameParts = activeTab.TargetSender.Split('@');
+            var name = nameParts[0];
+            var world = nameParts.Length > 1 ? nameParts[1] : "???";
+
+            return [
+                new TextChunk(ChunkSource.None, null, "Tell "),
+                new TextChunk(ChunkSource.None, null, name),
+                new IconChunk(ChunkSource.None, null, BitmapFontIcon.CrossWorld),
+                new TextChunk(ChunkSource.None, null, world)
+            ];
+        }
         Chunk[] channelNameChunks;
+
         // Check the temp channel before others
         if (activeTab.CurrentChannel.UseTempChannel)
         {
@@ -930,20 +944,23 @@ public sealed class ChatLogWindow : Window
         if (!string.IsNullOrWhiteSpace(Chat))
         {
             var trimmed = Chat.Trim();
-            AddBacklog(trimmed);
-            InputBacklogIdx = -1;
 
-            if (TellSpecial)
+            // [FIXED] DM Tab Hijack with unique variable name
+            if (!trimmed.StartsWith('/') && !string.IsNullOrEmpty(activeTab.TargetSender))
             {
-                var tellBytes = Encoding.UTF8.GetBytes(trimmed);
-                AutoTranslate.ReplaceWithPayload(ref tellBytes);
+                // Construct the full command: /tell Name@World Message
+                var manualCommand = $"/tell {activeTab.TargetSender} {trimmed}";
 
-                Plugin.Functions.Chat.SendTellUsingCommandInner(tellBytes);
+                // Renamed 'bytes' to 'dmBytes' to avoid the scope error
+                var dmBytes = Encoding.UTF8.GetBytes(manualCommand);
+                AutoTranslate.ReplaceWithPayload(ref dmBytes);
 
-                TellSpecial = false;
+                // Send directly to the game's chat engine
+                ChatBox.SendMessageUnsafe(dmBytes);
 
-                activeTab.CurrentChannel.ResetTempChannel();
+                // Clean up and stop further processing
                 Chat = string.Empty;
+                activeTab.CurrentChannel.ResetTempChannel();
                 return;
             }
 

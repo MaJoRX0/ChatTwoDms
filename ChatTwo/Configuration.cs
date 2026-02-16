@@ -225,6 +225,30 @@ internal static class UnreadModeExt
 [Serializable]
 internal class Tab
 {
+    // NEW TABS MAJOR
+    public string? TargetSender;
+    internal bool Matches(Message message)
+    {
+        if (TargetSender != null)
+        {
+            // 1. Get the clean Name from our Tab settings (removes @World)
+            var targetNameOnly = TargetSender.Split('@')[0].Trim();
+
+            // 2. Get the clean Name from the database message
+            // We use .TextValue to strip out any hidden FFXIV payloads/icons
+            var messagePerson = message.SenderSource.TextValue.Trim();
+
+            // 3. Check for exact match or if the message contains the target 
+            // (Handle cases where name might have a world icon attached)
+            bool isMatch = messagePerson.Equals(targetNameOnly, StringComparison.OrdinalIgnoreCase) ||
+                           messagePerson.Contains(targetNameOnly, StringComparison.OrdinalIgnoreCase);
+
+            if (!isMatch) return false;
+        }
+
+        return message.Matches(ChatCodes, ExtraChatAll, ExtraChatChannels);
+    }
+
     public string Name = Language.Tab_DefaultName;
     public Dictionary<ChatType, ChatSource> ChatCodes = new();
     public bool ExtraChatAll;
@@ -259,7 +283,6 @@ internal class Tab
 
     [NonSerialized] public Guid Identifier = Guid.NewGuid();
 
-    internal bool Matches(Message message) => message.Matches(ChatCodes, ExtraChatAll, ExtraChatChannels);
 
     internal void AddMessage(Message message, bool unread = true)
     {

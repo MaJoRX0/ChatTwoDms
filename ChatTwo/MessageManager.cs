@@ -234,7 +234,11 @@ internal class MessageManager : IAsyncDisposable
     }
 
     private void ProcessMessage(PendingMessage pendingMessage)
-    {
+    {// [NEW] Auto-DM Hook
+     // Passes the message, config, and database to our new manager
+     // [UPDATE] Pass 'Plugin' as the 4th argument
+        DmTabManager.HandleMessage(pendingMessage, Plugin.Config, Store);
+        // ... original code continues below ...
         var chatCode = new ChatCode((ushort)pendingMessage.Type);
 
         NameFormatting? formatting = null;
@@ -335,7 +339,7 @@ internal class MessageManager : IAsyncDisposable
         return nameFormatting;
     }
 
-    private class PendingMessage
+    public class PendingMessage
     {
         internal ulong ReceiverId { get; set; }
         internal ulong ContentId { get; set; } // 0 if unknown

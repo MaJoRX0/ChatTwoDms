@@ -1,20 +1,9 @@
-name: Chat 2
-author: Infi, Anna
-punchline: Electric Boogaloo - ♪ A whole new chat, a new fantastic chat window ♪
+name: Chat 2 - Twinkified
+author: Infi, Anna, Twinki
+punchline: Moolsted Chat2 (he likes it dw)
 description: |-
-  Chat 2 is a complete rewrite of the in-game chat window as a plugin.
-  It supports:
-
-  - Unlimited tabs
-  - Tabs that always send to a certain channel
-  - More flexible filtering
-  - RGB channel colouring
-  - Completely variable font size
-  - Sidebar tabs
-  - Unread counts
-  - Emotes
-  - Screenshot mode (obfuscate names)
-repo_url: https://github.com/Infiziert90/ChatTwo
+  Chat 2 but got touched a bit :3
+repo_url: https://github.com/MaJoRX0/ChatTwoDms
 accepts_feedback: true
 tags:
   - Social
