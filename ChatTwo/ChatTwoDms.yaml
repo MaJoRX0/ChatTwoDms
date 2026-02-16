@@ -3,6 +3,7 @@ author: Infi, Anna, Twinki
 punchline: Moolsted Chat2 (he likes it dw)
 description: |-
   Chat 2 but got touched a bit :3
+internal_name: ChatTwoDms
 repo_url: https://github.com/MaJoRX0/ChatTwoDms
 accepts_feedback: true
 tags:
@@ -40,4 +41,3 @@ changelog:  |-
   - Users that wish to expand this to apps or other platforms are welcome to do so
 
   *Note: An FAQ will be provided in the chat2 thread on the dalamud discord, linked in the About section*
-
