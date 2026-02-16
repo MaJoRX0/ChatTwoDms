@@ -2,17 +2,24 @@
   {
     "Author": "Twinki",
     "Name": "Chat 2 - Twinkified",
+    "Punchline": "Customized Chat 2 with automatic DM tabs and history loading.",
+    "Description": "A complete rewrite of the in-game chat window with unlimited tabs, flexible filtering, RGB channel coloring, variable font size, sidebar tabs, unread counts, emotes, and screenshot mode. This version includes automatic DM tab creation and chat history loading.",
     "InternalName": "ChatTwo",
     "AssemblyVersion": "1.34.3",
-    "Description": "Customized Chat 2 with automatic DM tabs and history loading.",
-    "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/MaJoRX0/ChatTwoDms",
-    "Tags": ["parsing", "plugin"],
+    "ApplicableVersion": "any",
+    "Tags": [
+      "chat",
+      "ui",
+      "social"
+    ],
     "DalamudApiLevel": 11,
     "LoadPriority": 0,
     "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
-    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip",
-    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip",
-    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip"
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip",
+    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip",
+    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/ChatTwo.zip"
   }
 ]
