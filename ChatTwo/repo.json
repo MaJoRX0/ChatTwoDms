@@ -1,0 +1,18 @@
+[
+  {
+    "Author": "Twinki",
+    "Name": "Chat 2 - Twinkified",
+    "InternalName": "ChatTwo",
+    "AssemblyVersion": "1.34.3",
+    "Description": "Customized Chat 2 with automatic DM tabs and history loading.",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/MaJoRX0/ChatTwoDms",
+    "Tags": ["parsing", "plugin"],
+    "DalamudApiLevel": 11,
+    "LoadPriority": 0,
+    "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
+    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip",
+    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip",
+    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.3/CHATTWO.zip"
+  }
+]
