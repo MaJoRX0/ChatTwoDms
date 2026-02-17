@@ -18,21 +18,16 @@ internal static class DmTabManager
         if (message.Type != XivChatType.TellIncoming && message.Type != XivChatType.TellOutgoing)
             return;
 
-        var partnerName = message.Sender.TextValue.Trim();
-
-        // Check if tab already exists
-        var existingTab = config.Tabs.FirstOrDefault(t =>
-            t.TargetSender != null && partnerName.Contains(t.TargetSender.Split('@')[0], StringComparison.OrdinalIgnoreCase));
-
-        if (existingTab != null) return;
-
         // ---------------------------------------------------------
-        // FIND THE WORLD ID (CRITICAL FOR CROSS-WORLD TELLS)
+        // 1. EXTRACT CLEAN NAME & WORLD ID (Moved to Top)
         // ---------------------------------------------------------
+        // We do this FIRST so we can match against existing tabs accurately.
+
+        var rawName = message.Sender.TextValue.Trim();
+        string cleanName = rawName;
         ushort worldId = 0;
-        string cleanName = partnerName;
 
-        // Strategy A: Check Payloads (Best)
+        // Strategy A: Check Payloads (Most Accurate)
         var senderPayload = message.Sender.Payloads.FirstOrDefault(p => p is PlayerPayload) as PlayerPayload;
         if (senderPayload != null)
         {
@@ -40,9 +35,9 @@ internal static class DmTabManager
             worldId = (ushort)senderPayload.World.RowId;
         }
         // Strategy B: Check "Name@World" String
-        else if (partnerName.Contains('@'))
+        else if (rawName.Contains('@'))
         {
-            var parts = partnerName.Split('@');
+            var parts = rawName.Split('@');
             cleanName = parts[0];
             var worldName = parts[1];
             foreach (var w in Sheets.WorldSheet)
@@ -54,7 +49,7 @@ internal static class DmTabManager
                 }
             }
         }
-        // Strategy C: Check Nearby Players
+        // Strategy C: Check Object Table
         if (worldId == 0)
         {
             foreach (var obj in Plugin.ObjectTable)
@@ -66,16 +61,33 @@ internal static class DmTabManager
                 }
             }
         }
-        // Strategy D: Fallback to Your World
+        // Strategy D: Fallback to Local Player's World
         if (worldId == 0 && Plugin.ClientState.LocalPlayer != null)
         {
             worldId = (ushort)Plugin.ClientState.LocalPlayer.CurrentWorld.RowId;
         }
 
         // ---------------------------------------------------------
-        // CONSTRUCT THE COMMAND TARGET
+        // 2. CHECK FOR EXISTING TABS (Strict Match)
         // ---------------------------------------------------------
-        // We save "Name@World" into TargetSender. This is what we will use for the /tell command.
+        var existingTab = config.Tabs.FirstOrDefault(t =>
+        {
+            if (string.IsNullOrEmpty(t.TargetSender)) return false;
+
+            // Get the name part of the tab's target (e.g., "Bob" from "Bob@Lich")
+            var tabTargetName = t.TargetSender.Split('@')[0].Trim();
+
+            // [FIX] USE .EQUALS INSTEAD OF .CONTAINS
+            // This prevents "Alex" from matching into "Al" tab.
+            return cleanName.Equals(tabTargetName, StringComparison.OrdinalIgnoreCase);
+        });
+
+        // If found, we stop here (the message manager adds it to that tab automatically later)
+        if (existingTab != null) return;
+
+        // ---------------------------------------------------------
+        // 3. CREATE NEW TAB
+        // ---------------------------------------------------------
         string finalTarget = cleanName;
         if (worldId > 0)
         {
@@ -83,11 +95,10 @@ internal static class DmTabManager
             finalTarget = $"{cleanName}@{worldName}";
         }
 
-        // Create the Tab
         var newTab = new Tab
         {
-            Name = cleanName,       // Tab Title (Short Name)
-            TargetSender = finalTarget, // Command Target (Full Name@World)
+            Name = cleanName,
+            TargetSender = finalTarget,
             ChatCodes = new Dictionary<ChatType, ChatSource>
             {
                 { ChatType.TellIncoming, (ChatSource)0xFFFF },
@@ -97,10 +108,10 @@ internal static class DmTabManager
             DisplayTimestamp = true,
             Channel = InputChannel.Tell,
             CanResize = true,
-            CanMove = true
+            CanMove = true,
+            IsManuallyHidden = false // [FIX] Explicitly force it to be visible
         };
 
-        // Create the initial target object (Visuals only)
         if (worldId > 0)
         {
             var target = new TellTarget(cleanName, worldId, 0, TellReason.Direct);
@@ -110,6 +121,8 @@ internal static class DmTabManager
 
         BackfillHistory(newTab, store);
         config.Tabs.Add(newTab);
+
+
     }
 
     private static void BackfillHistory(Tab tab, MessageStore store)
