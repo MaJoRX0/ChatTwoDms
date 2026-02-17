@@ -84,6 +84,8 @@ public sealed class ChatLogWindow : Window
         Plugin = plugin;
         Salt = new Random().Next().ToString();
 
+        EnsureAllDmsTab();
+
         Size = new Vector2(500, 250);
         SizeCondition = ImGuiCond.FirstUseEver;
 
@@ -536,6 +538,7 @@ public sealed class ChatLogWindow : Window
         // Position change has applied, so we set it to null again
         Position = null;
 
+
         var currentSize = ImGui.GetWindowSize();
         var resized = LastWindowSize != currentSize;
         LastWindowSize = currentSize;
@@ -707,17 +710,29 @@ public sealed class ChatLogWindow : Window
 
         ImGui.SameLine();
 
+        // --- ADDITION START ---
         var eyeIcon = RevealHiddenTabs ? FontAwesomeIcon.Eye : FontAwesomeIcon.EyeSlash;
         var eyeColor = RevealHiddenTabs ? ImGui.GetColorU32(ImGuiCol.CheckMark) : ImGui.GetColorU32(ImGuiCol.TextDisabled);
-
+        using (ImRaii.PushFont(UiBuilder.IconFont))
         using (ImRaii.PushColor(ImGuiCol.Text, eyeColor))
         {
-            if (ImGuiUtil.IconButton(eyeIcon, width: (int)buttonWidth, tooltip: "Show Hidden Tabs"))
+            // Trailing puts it at the far right of the tab bar
+            if (ImGui.TabItemButton(eyeIcon.ToIconString(), ImGuiTabItemFlags.Trailing | ImGuiTabItemFlags.NoTooltip))
             {
                 RevealHiddenTabs = !RevealHiddenTabs;
             }
         }
+        if (ImGui.IsItemHovered()) ImGuiUtil.Tooltip("Show Hidden Tabs");
+        // --- ADDITION END ---
 
+        if (Plugin.Config.ShowHideButton)
+        {
+            ImGui.SameLine();
+            if (ImGuiUtil.IconButton(FontAwesomeIcon.Eye, width: (int)buttonWidth, tooltip: Language.ChatLog_HideChat))
+            {
+                UserHide();
+            }
+        }
         // [EXISTING] Settings Button
         ImGui.SameLine();
         if (ImGuiUtil.IconButton(FontAwesomeIcon.Cog, width: (int)buttonWidth))
@@ -1257,6 +1272,28 @@ internal void SendChatBox(Tab activeTab)
         }
     }
 
+
+    private const string AllDmsTabName = "ALL";
+
+    // [ADD THIS METHOD ANYWHERE]
+    private void EnsureAllDmsTab()
+    {
+        if (!Plugin.Config.Tabs.Any(t => t.Name == AllDmsTabName))
+        {
+            var tab = new Tab { Name = AllDmsTabName };
+
+            // [FIX] Use ChatCodes dictionary. 
+            // We map the ChatType to ChatSourceExt.All (or ChatSource.Other | ChatSource.Self etc)
+            tab.ChatCodes[ChatType.TellIncoming] = ChatSourceExt.All;
+            tab.ChatCodes[ChatType.TellOutgoing] = ChatSourceExt.All;
+
+
+            Plugin.Config.Tabs.Add(tab);
+
+            // [FIX] Use the Plugin's save method
+            Plugin.SaveConfig();
+        }
+    }
     private void DrawTabBar()
     {
         using var tabBar = ImRaii.TabBar("##chat2-tabs");
@@ -1274,16 +1311,13 @@ internal void SendChatBox(Tab activeTab)
             if (!string.IsNullOrEmpty(tab.TargetSender)) continue; // Skip DMs
             if (tab.PopOut) continue;
 
-            // [SAFETY FIX] Snapshot the state!
-            // We use 'pushedColor' to remember IF we pushed a color.
-            // We DO NOT check 'tab.IsManuallyHidden' again at the end, because it might have changed!
-            bool pushedColor = false;
+            // [MODIFIED] Skip the "ALL" tab here (we draw it in the Private group)
+            if (tab.Name == AllDmsTabName) continue;
 
-            // Logic: Should we hide this completely?
+            bool pushedColor = false;
             if (tab.IsManuallyHidden && !RevealHiddenTabs && Plugin.LastTab != tabI)
                 continue;
 
-            // Logic: Should we gray it out?
             if (tab.IsManuallyHidden)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
@@ -1292,13 +1326,12 @@ internal void SendChatBox(Tab activeTab)
 
             DrawStandardTab(tab, tabI, previousTab);
 
-            // [SAFETY FIX] Only Pop if WE pushed it earlier.
             if (pushedColor)
                 ImGui.PopStyleColor();
         }
 
         // -----------------------------------------------------------------------
-        // 2. PRIVATE GROUP (DMs)
+        // 2. PRIVATE GROUP (DMs) + ALL TAB
         // -----------------------------------------------------------------------
         var dmTabs = Plugin.Config.Tabs
             .Select((t, index) => (Tab: t, Index: index))
@@ -1306,14 +1339,23 @@ internal void SendChatBox(Tab activeTab)
             .Where(x => !x.Tab.IsManuallyHidden || RevealHiddenTabs || Plugin.LastTab == x.Index)
             .ToList();
 
-        if (dmTabs.Count > 0)
+        // Check if we have DMs OR if the ALL tab exists
+        var allTabI = Plugin.Config.Tabs.FindIndex(t => t.Name == AllDmsTabName);
+        var hasAllTab = allTabI != -1;
+
+        if (dmTabs.Count > 0 || hasAllTab)
         {
             var totalUnread = Plugin.Config.Tabs
                 .Where(t => !string.IsNullOrEmpty(t.TargetSender))
                 .Sum(t => t.Unread);
 
+            // Add ALL tab unread count
+            if (hasAllTab) totalUnread += Plugin.Config.Tabs[allTabI].Unread;
+
             var groupName = totalUnread > 0 ? $"Private ({totalUnread})" : "Private";
-            bool isDmActive = !string.IsNullOrEmpty(Plugin.CurrentTab.TargetSender);
+
+            // [MODIFIED] Group is active if a DM is selected OR the ALL tab is selected
+            bool isDmActive = !string.IsNullOrEmpty(Plugin.CurrentTab.TargetSender) || Plugin.CurrentTab.Name == AllDmsTabName;
             var flags = isDmActive ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
 
             using var groupTab = ImRaii.TabItem($"{groupName}###private-group-tab", flags);
@@ -1322,15 +1364,35 @@ internal void SendChatBox(Tab activeTab)
                 using var nestedBar = ImRaii.TabBar("##nested-dm-tabs");
                 if (nestedBar.Success)
                 {
+                    // [NEW] Draw the "ALL" Tab first
+                    if (hasAllTab)
+                    {
+                        var allTab = Plugin.Config.Tabs[allTabI];
+                        // Logic to handle graying out if manually hidden (same as others)
+                        bool pushedColorAll = false;
+                        if (allTab.IsManuallyHidden)
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
+                            pushedColorAll = true;
+                        }
+
+                        // Only draw if visible or revealed or active
+                        if (!allTab.IsManuallyHidden || RevealHiddenTabs || Plugin.LastTab == allTabI)
+                        {
+                            DrawStandardTab(allTab, allTabI, previousTab);
+                        }
+
+                        if (pushedColorAll) ImGui.PopStyleColor();
+                    }
+
+                    // Draw existing DMs
                     bool drawnAny = false;
                     foreach (var (tab, index) in dmTabs)
                     {
                         var unread = index == Plugin.LastTab || tab.UnreadMode == UnreadMode.None || tab.Unread == 0 ? "" : $" ({tab.Unread})";
                         var tabFlags = (Plugin.WantedTab == index) ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
 
-                        // [SAFETY FIX] Same Snapshot Logic Here
                         bool pushedColor = false;
-
                         if (tab.IsManuallyHidden)
                         {
                             ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
@@ -1339,12 +1401,10 @@ internal void SendChatBox(Tab activeTab)
 
                         using var nestedItem = ImRaii.TabItem($"{tab.Name}{unread}###log-tab-{index}", tabFlags);
 
-                        // Pop IMMEDIATELY after creating the tab item header.
-                        // This prevents the gray color from leaking into the Context Menu or the Tab Content.
                         if (pushedColor)
                         {
                             ImGui.PopStyleColor();
-                            pushedColor = false; // Mark as popped so we don't pop again
+                            pushedColor = false;
                         }
 
                         DrawTabContextMenu(tab, index);
@@ -1362,13 +1422,35 @@ internal void SendChatBox(Tab activeTab)
                         }
                     }
 
-                    if (!drawnAny && dmTabs.Count > 0 && !isDmActive) Plugin.WantedTab = dmTabs[0].Index;
+                    // Fallback selection logic
+                    if (!drawnAny && dmTabs.Count > 0 && !isDmActive && !hasAllTab) Plugin.WantedTab = dmTabs[0].Index;
                 }
             }
         }
         Plugin.WantedTab = null;
-    }
 
+        // --- HIDE/UNHIDE BUTTON (Manual Render) ---
+        var eyeIcon = RevealHiddenTabs ? FontAwesomeIcon.Eye : FontAwesomeIcon.EyeSlash;
+        var eyeColor = RevealHiddenTabs ? ImGui.GetColorU32(ImGuiCol.CheckMark) : ImGui.GetColorU32(ImGuiCol.TextDisabled);
+
+        if (ImGui.TabItemButton("     ###RevealHiddenTabs", ImGuiTabItemFlags.Trailing | ImGuiTabItemFlags.NoTooltip))
+        {
+            RevealHiddenTabs = !RevealHiddenTabs;
+        }
+
+        if (ImGui.IsItemHovered()) ImGuiUtil.Tooltip("Show Hidden Tabs");
+
+        var min = ImGui.GetItemRectMin();
+        var size = ImGui.GetItemRectSize();
+        var center = min + size / 2f;
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            var iconString = eyeIcon.ToIconString();
+            var iconSize = ImGui.CalcTextSize(iconString);
+            ImGui.GetWindowDrawList().AddText(UiBuilder.IconFont, ImGui.GetFontSize(), center - iconSize / 2f, eyeColor, iconString);
+        }
+    }
     // [HELPER METHOD] Paste this right below DrawTabBar
     private void DrawStandardTab(Tab tab, int index, Tab previousTab)
     {

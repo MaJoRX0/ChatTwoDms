@@ -1,14 +1,15 @@
-using System.Collections;
-using System.Collections.Concurrent;
 using ChatTwo.Code;
 using ChatTwo.GameFunctions.Types;
 using ChatTwo.Resources;
 using ChatTwo.Util;
 using Dalamud;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.FontIdentifier;
-using Dalamud.Bindings.ImGui;
+using Newtonsoft.Json;
+using System.Collections;
+using System.Collections.Concurrent;
 
 namespace ChatTwo;
 
@@ -226,7 +227,10 @@ internal static class UnreadModeExt
 internal class Tab
 {
     // NEW TABS MAJOR
+    [JsonProperty]
     public string? TargetSender;
+
+    [JsonProperty]
     public bool IsManuallyHidden;
 
     internal bool Matches(Message message)
@@ -305,7 +309,7 @@ internal class Tab
         {
             Name = Name,
 
-            // [FIX] Add these two lines so they are copied when Saving!
+            // [NEW] Add these two lines so they don't get deleted on save!
             TargetSender = TargetSender,
             IsManuallyHidden = IsManuallyHidden,
 
