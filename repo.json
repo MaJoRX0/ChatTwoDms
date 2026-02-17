@@ -3,7 +3,7 @@
   "Author": "Infi, Anna, Twinki",
   "Name": "Chat 2 - Twinkified",
   "InternalName": "ChatTwoDms",
-  "AssemblyVersion": "1.34.4.0",
+  "AssemblyVersion": "1.69.4.0",
   "Description": "Chat 2 but got touched a bit :3",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/MaJoRX0/ChatTwoDms",
@@ -19,13 +19,13 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "Punchline": "Moolsted Chat2 (he likes it dw)",
-  "Changelog": "**New Feature Added~**\n- A web interface has been added\n- *This will not function if your game client is offline or you are logged out of the game*\n\n**Main Features**\n- View in-game chat on any device that has a web browser functionality\n- Can send chat messages through the web interface directly into the game itself\n- Easily copy & paste messages\n- Option for automatic starting the web interface feature\n- Log lines render limit for faster loading performance [Default 1000]\n\n**Security**\n- This feature is not intended to be used outside of your local, private network\n- Do not forward ports that are described inside the chat2 options panel\n- Never share your authentication code under any circumstances\n- Multi-box support is not provided, the web interface will track only the first client\n\n**Additional Features soon to be Added**\n- Display errors as small notifications inside the web interface\n\n**Planned Features**\n- Multiple Tabs support\n- Browser specific settings\n- Stylization support\n\n**Additional Permissions Note**\n- Users that wish to expand this to apps or other platforms are welcome to do so\n\n*Note: An FAQ will be provided in the chat2 thread on the dalamud discord, linked in the About section*",
+  "Changelog": "Tabs in tabs is awesome idea ngl, love u lily for it. and also ability to hide tabs cuz why not",
   "AcceptsFeedback": true,
 "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
     "IsHide": false,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.4.0/CHATTWODMS.zip",
-    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.4.0/CHATTWODMS.zip",
-    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.34.4.0/CHATTWODMS.zip"
+    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.4.0/CHATTWODMS.zip",
+    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.4.0/CHATTWODMS.zip",
+    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.4.0/CHATTWODMS.zip"
 }
 ]

@@ -227,6 +227,8 @@ internal class Tab
 {
     // NEW TABS MAJOR
     public string? TargetSender;
+    public bool IsManuallyHidden;
+
     internal bool Matches(Message message)
     {
         if (TargetSender != null)
@@ -302,6 +304,11 @@ internal class Tab
         return new Tab
         {
             Name = Name,
+
+            // [FIX] Add these two lines so they are copied when Saving!
+            TargetSender = TargetSender,
+            IsManuallyHidden = IsManuallyHidden,
+
             ChatCodes = ChatCodes.ToDictionary(entry => entry.Key, entry => entry.Value),
             ExtraChatAll = ExtraChatAll,
             ExtraChatChannels = ExtraChatChannels.ToHashSet(),

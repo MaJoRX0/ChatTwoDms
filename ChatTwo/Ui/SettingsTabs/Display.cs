@@ -21,6 +21,9 @@ internal sealed class Display : ISettingsTab
     {
         using var wrap = ImGuiUtil.TextWrapPos();
 
+        ImGuiUtil.OptionCheckbox(ref Mutable.SidebarTabView, "Sidebar Tab View", "Moves the tabs to the left side of the window.");
+        ImGui.Spacing();
+
         ImGuiUtil.OptionCheckbox(ref Mutable.HideChat, Language.Options_HideChat_Name, Language.Options_HideChat_Description);
         ImGui.Spacing();
 
