@@ -3,7 +3,7 @@
   "Author": "Infi, Anna, Twinki",
   "Name": "Chat 2 - Twinkified",
   "InternalName": "ChatTwoDms",
-  "AssemblyVersion": "1.69.6.0",
+  "AssemblyVersion": "1.69.7.0",
   "Description": "Chat 2 but got touched a bit :3",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/MaJoRX0/ChatTwoDms",
@@ -19,13 +19,13 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "Punchline": "Moolsted Chat2 (he likes it dw)",
-  "Changelog": "Fixed problem with loose matching problem",
+  "Changelog": "Add Emote picker and 'ALL' DM tab; fix UI layout and unread counters",
   "AcceptsFeedback": true,
 "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
     "IsHide": false,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.6.0/CHATTWODMS.zip",
-    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.6.0/CHATTWODMS.zip",
-    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.6.0/CHATTWODMS.zip"
+    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.7.0/CHATTWODMS.zip",
+    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.7.0/CHATTWODMS.zip",
+    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.7.0/CHATTWODMS.zip"
 }
 ]

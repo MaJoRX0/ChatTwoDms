@@ -38,6 +38,8 @@ public sealed class ChatLogWindow : Window
 
     internal Vector4 DefaultText { get; set; }
 
+    private string EmoteSearch = string.Empty;
+
     private bool RevealHiddenTabs;
     internal bool FocusedPreview;
     internal bool Activate;
@@ -595,7 +597,7 @@ public sealed class ChatLogWindow : Window
 
         var buttonWidth = afterIcon.X - beforeIcon.X;
         var showNovice = Plugin.Config.ShowNoviceNetwork && GameFunctions.GameFunctions.IsMentor();
-        var buttonsRight = (showNovice ? 1 : 0) + (Plugin.Config.ShowHideButton ? 1 : 0);
+        var buttonsRight = (showNovice ? 1 : 0) + (Plugin.Config.ShowHideButton ? 1 : 0) + 1;
         var inputWidth = ImGui.GetContentRegionAvail().X - buttonWidth * (1 + buttonsRight);
 
         var inputType = activeTab.CurrentChannel.UseTempChannel ? activeTab.CurrentChannel.TempChannel.ToChatType() : activeTab.CurrentChannel.Channel.ToChatType();
@@ -722,7 +724,70 @@ public sealed class ChatLogWindow : Window
                 RevealHiddenTabs = !RevealHiddenTabs;
             }
         }
-        if (ImGui.IsItemHovered()) ImGuiUtil.Tooltip("Show Hidden Tabs");
+
+        ImGui.SameLine();
+        if (ImGuiUtil.IconButton(FontAwesomeIcon.Smile))
+            ImGui.OpenPopup("EmotePicker");
+
+        using (var popup = ImRaii.Popup("EmotePicker"))
+        {
+            if (popup.Success)
+            {
+                // [NEW] Search Bar
+                ImGui.SetNextItemWidth(350f * ImGuiHelpers.GlobalScale);
+                if (EmoteSearch == null) EmoteSearch = string.Empty; // Safety init
+                ImGui.InputTextWithHint("##EmoteSearch", "Search emotes...", ref EmoteSearch, 50);
+
+                using (var child = ImRaii.Child("EmotePickerChild", new Vector2(350, 250)))
+                {
+                    if (child.Success)
+                    {
+                        var btnSize = new Vector2(32, 32);
+                        var style = ImGui.GetStyle();
+
+                        // [FIX] Use Local Coordinates for reliable wrapping
+                        // Get the local X coordinate of the right edge of the content area
+                        var windowMaxX = ImGui.GetWindowContentRegionMax().X;
+
+                        var filteredEmotes = string.IsNullOrWhiteSpace(EmoteSearch)
+                            ? EmoteCache.SortedCodeArray
+                            : EmoteCache.SortedCodeArray.Where(e => e.Contains(EmoteSearch, StringComparison.OrdinalIgnoreCase));
+
+                        foreach (var code in filteredEmotes)
+                        {
+                            var emoteBase = EmoteCache.GetEmote(code);
+                            if (emoteBase == null || !emoteBase.IsLoaded) continue;
+
+                            ImGui.PushID(code);
+
+                            // 1. Draw the Button
+                            if (ImGui.Button("##pickerBtn", btnSize))
+                            {
+                                Chat += $" {code} ";
+                                ImGui.CloseCurrentPopup();
+                            }
+
+                            // 2. Draw the Image
+                            var min = ImGui.GetItemRectMin();
+                            ImGui.SetCursorScreenPos(min);
+                            emoteBase.Draw(btnSize);
+                            if (ImGui.IsItemHovered()) ImGuiUtil.Tooltip(code);
+                            // 3. [FIXED] Wrap Logic (Local Coords)
+                            // Calculate relative X position of the Next Button's right edge
+                            float lastBtnMaxX = ImGui.GetItemRectMax().X - ImGui.GetWindowPos().X;
+                            float nextBtnMaxX = lastBtnMaxX + style.ItemSpacing.X + btnSize.X;
+
+                            // If the next button fits within the local content width, stay on line
+                            if (nextBtnMaxX < windowMaxX)
+                                ImGui.SameLine();
+
+                            ImGui.PopID();
+                        }
+                    }
+                }
+            }
+        }
+        //if (ImGui.IsItemHovered()) ImGuiUtil.Tooltip("Show Hidden Tabs");
         // --- ADDITION END ---
 
         if (Plugin.Config.ShowHideButton)
@@ -1286,7 +1351,7 @@ internal void SendChatBox(Tab activeTab)
             // We map the ChatType to ChatSourceExt.All (or ChatSource.Other | ChatSource.Self etc)
             tab.ChatCodes[ChatType.TellIncoming] = ChatSourceExt.All;
             tab.ChatCodes[ChatType.TellOutgoing] = ChatSourceExt.All;
-
+            tab.UnreadMode = UnreadMode.None;
 
             Plugin.Config.Tabs.Add(tab);
 
@@ -1311,7 +1376,7 @@ internal void SendChatBox(Tab activeTab)
             if (!string.IsNullOrEmpty(tab.TargetSender)) continue; // Skip DMs
             if (tab.PopOut) continue;
 
-            // [MODIFIED] Skip the "ALL" tab here (we draw it in the Private group)
+            // Skip the "ALL" tab here (we draw it in the Private group)
             if (tab.Name == AllDmsTabName) continue;
 
             bool pushedColor = false;
@@ -1345,17 +1410,25 @@ internal void SendChatBox(Tab activeTab)
 
         if (dmTabs.Count > 0 || hasAllTab)
         {
+            // [FIX] Calculate total unread, IGNORING tabs with UnreadMode.None
             var totalUnread = Plugin.Config.Tabs
-                .Where(t => !string.IsNullOrEmpty(t.TargetSender))
+                .Where(t => !string.IsNullOrEmpty(t.TargetSender) && t.UnreadMode != UnreadMode.None)
                 .Sum(t => t.Unread);
 
-            // Add ALL tab unread count
-            if (hasAllTab) totalUnread += Plugin.Config.Tabs[allTabI].Unread;
+            // [FIX] Add ALL tab unread count ONLY if allowed
+            if (hasAllTab)
+            {
+                var allTab = Plugin.Config.Tabs[allTabI];
+                if (allTab.UnreadMode != UnreadMode.None)
+                {
+                    totalUnread += allTab.Unread;
+                }
+            }
 
             var groupName = totalUnread > 0 ? $"Private ({totalUnread})" : "Private";
 
-            // [MODIFIED] Group is active if a DM is selected OR the ALL tab is selected
-            bool isDmActive = !string.IsNullOrEmpty(Plugin.CurrentTab.TargetSender) || Plugin.CurrentTab.Name == AllDmsTabName;
+            // Group is active if a DM is selected OR the ALL tab is selected
+            bool isDmActive = !string.IsNullOrEmpty(Plugin.CurrentTab.TargetSender) || (hasAllTab && Plugin.CurrentTab.Name == AllDmsTabName);
             var flags = isDmActive ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
 
             using var groupTab = ImRaii.TabItem($"{groupName}###private-group-tab", flags);
@@ -1364,11 +1437,10 @@ internal void SendChatBox(Tab activeTab)
                 using var nestedBar = ImRaii.TabBar("##nested-dm-tabs");
                 if (nestedBar.Success)
                 {
-                    // [NEW] Draw the "ALL" Tab first
+                    // Draw the "ALL" Tab first
                     if (hasAllTab)
                     {
                         var allTab = Plugin.Config.Tabs[allTabI];
-                        // Logic to handle graying out if manually hidden (same as others)
                         bool pushedColorAll = false;
                         if (allTab.IsManuallyHidden)
                         {
@@ -1376,7 +1448,6 @@ internal void SendChatBox(Tab activeTab)
                             pushedColorAll = true;
                         }
 
-                        // Only draw if visible or revealed or active
                         if (!allTab.IsManuallyHidden || RevealHiddenTabs || Plugin.LastTab == allTabI)
                         {
                             DrawStandardTab(allTab, allTabI, previousTab);
@@ -1422,7 +1493,6 @@ internal void SendChatBox(Tab activeTab)
                         }
                     }
 
-                    // Fallback selection logic
                     if (!drawnAny && dmTabs.Count > 0 && !isDmActive && !hasAllTab) Plugin.WantedTab = dmTabs[0].Index;
                 }
             }

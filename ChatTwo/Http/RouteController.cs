@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Web;
 using ChatTwo.Http.MessageProtocol;
 using ChatTwo.Util;
@@ -52,6 +52,16 @@ public class RouteController
 
         // Server-Sent Events Route
         HostContext.Host.Routes.PostAuthentication.Static.Add(HttpMethod.POST, "/sse", NewSSEConnection, ExceptionRoute);
+
+        // MaJoR
+        HostContext.Host.Routes.PostAuthentication.Static.Add(HttpMethod.GET, "/emotes/list", GetEmoteList, ExceptionRoute);
+    }
+
+    // MaJoR
+    private async Task GetEmoteList(HttpContextBase ctx)
+    {
+        var emotes = EmoteCache.SortedCodeArray;
+        await ctx.Response.Send(JsonConvert.SerializeObject(emotes));
     }
 
     private async Task ExceptionRoute(HttpContextBase ctx, Exception _)

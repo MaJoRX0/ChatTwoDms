@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Dalamud.Interface.Textures;
@@ -57,7 +57,7 @@ public static class EmoteCache
     // All of this data is uninitalized while State is not `LoadingState.Done`
     public static LoadingState State = LoadingState.Unloaded;
 
-    private static readonly Dictionary<string, Emote> Cache = new();
+    internal static readonly Dictionary<string, Emote> Cache = new();
     private static readonly Dictionary<string, EmoteBase> EmoteImages = new();
 
     public static string[] SortedCodeArray = [];
