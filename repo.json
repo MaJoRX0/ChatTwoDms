@@ -19,13 +19,13 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "Punchline": "Moolsted Chat2 (he likes it dw)",
-  "Changelog": "Add Emote picker and 'ALL' DM tab; fix UI layout and unread counters",
+  "Changelog": "Add player names colors in LinkShell Chats, and memorize/restore window size&pos (right click the channels hide button)",
   "AcceptsFeedback": true,
 "IconUrl": "https://raw.githubusercontent.com/MaJoRX0/ChatTwoDms/main/ChatTwo/images/icon.png",
     "IsHide": false,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.8.0/CHATTWODMS.zip",
-    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.8.0/CHATTWODMS.zip",
-    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.8.0/CHATTWODMS.zip"
+    "DownloadLinkInstall": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.9.0/CHATTWODMS.zip",
+    "DownloadLinkTesting": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.9.0/CHATTWODMS.zip",
+    "DownloadLinkUpdate": "https://github.com/MaJoRX0/ChatTwoDms/releases/download/1.69.9.0/CHATTWODMS.zip"
 }
 ]
